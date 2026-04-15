@@ -40,9 +40,9 @@ services:
       init-folders:
         condition: service_completed_successfully
       immich-redis:
-        condition: service_started
+        condition: service_healthy
       immich-postgres:
-        condition: service_started
+        condition: service_healthy
     restart: always
     networks:
       - media
@@ -60,19 +60,29 @@ services:
   immich-redis:
     container_name: immich_redis
     image: redis:6.2-alpine
+    healthcheck:
+      test: redis-cli ping || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: always
     networks:
       - media
 
   immich-postgres:
     container_name: immich_postgres
-    image: postgres:14
+    image: tensorchord/pgvecto-rs:pg14-v0.2.0-240529
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_DB: ${DB_DATABASE_NAME}
     volumes:
       - ./config/immich_db:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE_NAME} || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: always
     networks:
       - media

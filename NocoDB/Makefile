@@ -1,4 +1,4 @@
-.PHONY: help install start stop restart logs status ps clean rebuild health init
+.PHONY: help install start stop restart logs status ps clean purge rebuild health init
 
 help:
 	@echo "NocoDB Docker Deployment - Makefile Commands"
@@ -11,6 +11,7 @@ help:
 	@echo "  make status    - Show container status"
 	@echo "  make ps         - List running containers"
 	@echo "  make clean     - Remove containers and volumes"
+	@echo "  make purge    - Remove all local data (complete reset)"
 	@echo "  make rebuild  - Rebuild and restart containers"
 	@echo "  make health   - Check service health"
 
@@ -45,7 +46,12 @@ ps:
 
 clean:
 	@docker compose down -v
-	@echo "Containers and volumes removed"
+	@echo "Containers and volumes removed. Note: Local data in ./data and ./redis remains intact."
+
+purge: clean
+	@echo "Removing local data directories..."
+	@rm -rf data redis
+	@echo "All local data removed."
 
 rebuild:
 	@docker compose pull
@@ -53,4 +59,4 @@ rebuild:
 	@echo "Rebuild complete"
 
 health:
-	@curl -sf http://localhost:8080/api/v1/version > /dev/null && echo "Service is healthy" || echo "Service is unreachable"
+	@curl -sf http://localhost:8080/api/v1/version > /dev/null && echo "Service is healthy" || (echo "Service is unreachable" && exit 1)

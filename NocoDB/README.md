@@ -30,7 +30,7 @@ This repository provides a production-ready Docker Compose architecture for depl
 - Docker Compose v2.0 or higher
 - 4GB RAM minimum (8GB recommended)
 - 20GB available storage
-- Ports 8080 and 6379 available
+- Port 8080 available
 
 ---
 
@@ -48,7 +48,7 @@ flowchart TB
 
     subgraph "Container Layer"
         C[NocoDB Application<br/>:8080]
-        D[Redis Cache<br/>:6379]
+        D[Redis Cache<br/>(internal)]
     end
 
     subgraph "Persistence Layer"
@@ -58,7 +58,7 @@ flowchart TB
 
     A -->|"HTTP :8080"| B
     B --> C
-    C -->|"TCP :6379"| D
+    C -->|"TCP (internal)"| D
     C -->|"Read/Write"| E
     D -->|"Persist"| F
 
@@ -207,8 +207,8 @@ Redis Container Startup:
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd NocoDB
+git clone git@github.com:Selio30/imagenesDocker.git
+cd imagenesDocker/NocoDB
 ```
 
 ### 2. Configure Environment (Optional)
@@ -246,15 +246,16 @@ make health
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `NC_TOOL_DIR` | Data storage directory | `/usr/app/data` |
+| `NC_REDIS_URL` | Connection string for Redis | `redis://redis:6379` |
 | `NC_DB` | Database type | `sqlite` |
-| `NC_AUTH_JWT_SECRET` | JWT secret for authentication | (auto-generated) |
 
 ### Port Mappings
 
 | Service | Host Port | Container Port | Protocol |
 |---------|----------|---------------|----------|
 | nocodb | 8080 | 8080 | HTTP |
-| redis | 6379 | 6379 | TCP |
+
+**Security Note:** The port 8080 is exposed on all network interfaces by default (0.0.0.0). Ensure appropriate network-level firewalling is in place or place the service behind a reverse proxy for access control.
 
 ### Directory Mounts
 
@@ -271,13 +272,14 @@ make health
 make install    # Initialize environment and start services
 make start      # Start all containers (detached)
 make stop       # Stop all containers
-make restart   # Restart all containers
-make logs      # View logs (follow mode)
-make status    # Show container status
-make ps        # List running containers
-make clean     # Remove containers and volumes
-make rebuild   # Rebuild and restart containers
-make health    # Check service health
+make restart    # Restart all containers
+make logs       # View logs (follow mode)
+make status     # Show container status
+make ps         # List running containers
+make clean      # Remove containers and volumes (keeps local data)
+make purge      # ⚠️ Remove containers, volumes, AND local data directories
+make rebuild    # Rebuild and restart containers
+make health     # Check service health
 ```
 
 ### Manual Commands
@@ -291,18 +293,19 @@ docker compose logs -f redis  # Redis logs only
 
 ### Accessing NocoDB
 
-Once deployed, access the application at: `http://localhost:8080`
+Once deployed, access the application at: `http://localhost:8080` (or `http://<your-server-ip>:8080`)
 
 ## Security Considerations
 
-- Change default JWT secret in production environments:
+- **Network Exposure & Firewalling**: The NocoDB service (port 8080) is intentionally exposed on all network interfaces (`0.0.0.0`) to allow LAN access. **Appropriate network-level firewalling is strictly required**, or the service must be placed behind a reverse proxy to ensure access control.
+- **Internal Cache**: Redis is not exposed to the host machine, mitigating external unauthorized access to the caching layer.
+- **Authentication**: Change the default JWT secret in production environments:
   ```bash
   export NC_AUTH_JWT_SECRET=$(openssl rand -hex 32)
   ```
-- Implement TLS/SSL termination via reverse proxy (nginx, traefik)
-- Restrict network access to port 8080 using firewall rules
-- Regularly update base images to latest stable versions
-- Store sensitive variables in a secure secrets manager
+- **Encryption**: Implement TLS/SSL termination via reverse proxy (nginx, traefik).
+- **Maintenance**: Regularly update base images to latest stable versions.
+- **Secrets Management**: Store sensitive variables in a secure secrets manager.
 
 ## Maintenance
 
@@ -319,6 +322,12 @@ tar czf nocodb_backup_$(date +%Y%m%d).tar.gz data/ redis/
 make stop
 tar xzf nocodb_backup_YYYYMMDD.tar.gz
 make start
+```
+
+### Hard Reset (Data Loss)
+
+```bash
+make purge
 ```
 
 ### Update Images
@@ -341,8 +350,6 @@ make rebuild
 
 ```bash
 make health
-# Or manually:
-curl -sf http://localhost:8080/api/v1/version && echo " OK"
 ```
 
 ### View Logs
@@ -364,4 +371,4 @@ Proprietary - All rights reserved.
 
 ## Author
 
-Sergio Barbero - [sergiobr-edt](https://www.linkedin.com/in/sergiobr-edt)
+Sergio Barbero - [Sergio](https://www.linkedin.com/in/Selio30)

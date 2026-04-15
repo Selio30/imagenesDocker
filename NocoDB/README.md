@@ -47,13 +47,13 @@ flowchart TB
     end
 
     subgraph "Container Layer"
-        C[NocoDB Application<br/>:8080]
-        D[Redis Cache<br/>(internal)]
+        C["NocoDB Application<br/>:8080"]
+        D["Redis Cache<br/>(internal)"]
     end
 
     subgraph "Persistence Layer"
-        E["Bind Mount<br/./data"]
-        F["Bind Mount<br/./redis"]
+        E["Bind Mount<br/>./data"]
+        F["Bind Mount<br/>./redis"]
     end
 
     A -->|"HTTP :8080"| B
@@ -62,8 +62,8 @@ flowchart TB
     C -->|"Read/Write"| E
     D -->|"Persist"| F
 
-    E -.->|Contains| G[SQLite DB<br/>noco.db]
-    F -.->|Contains| H[Cache Files]
+    E -.->|Contains| G["SQLite DB<br/>noco.db"]
+    F -.->|Contains| H["Cache Files"]
 ```
 
 ---

@@ -1,0 +1,240 @@
+x-common-env: &common-env
+  PUID: 1000
+  PGID: 1000
+  TZ: Europe/Madrid
+  UMASK: 002
+
+services:
+
+  ############################################################
+  # INICIALIZACIÓN — Crea estructura de carpetas
+  ############################################################
+  init-folders:
+    image: alpine:latest
+    container_name: init_folders
+    volumes:
+      - ./data:/data
+    command: >
+      sh -c "mkdir -p /data/torrents/books /data/torrents/movies /data/torrents/music /data/torrents/tv
+      /data/usenet/incomplete /data/usenet/complete/books /data/usenet/complete/movies /data/usenet/complete/music /data/usenet/complete/tv
+      /data/media/books /data/media/movies /data/media/music /data/media/tv
+      && echo 'Carpetas creadas'"
+
+  ############################################################
+  # IMMICH — Gestión de Fotos y Vídeos Personales
+  ############################################################
+  immich-server:
+    container_name: immich_server
+    image: ghcr.io/immich-app/immich-server:release
+    volumes:
+      - ./config/immich_library:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - DB_HOSTNAME=immich-postgres
+    env_file: .env
+    ports:
+      - "18000:2283"
+    devices:
+      - /dev/dri:/dev/dri
+    depends_on:
+      init-folders:
+        condition: service_completed_successfully
+      immich-redis:
+        condition: service_started
+      immich-postgres:
+        condition: service_started
+    restart: always
+    networks:
+      - media
+
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    volumes:
+      - immich-ml-cache:/cache
+    env_file: .env
+    restart: always
+    networks:
+      - media
+
+  immich-redis:
+    container_name: immich_redis
+    image: redis:6.2-alpine
+    restart: always
+    networks:
+      - media
+
+  immich-postgres:
+    container_name: immich_postgres
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE_NAME}
+    volumes:
+      - ./config/immich_db:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - media
+
+  ############################################################
+  # MULTIMEDIA — Cine, Series y Subtítulos
+  ############################################################
+  jellyfin:
+    image: linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    ports:
+      - "18001:8096"
+    environment: *common-env
+    volumes:
+      - ./config/jellyfin:/config
+      - ./data:/data
+    devices:
+      - /dev/dri:/dev/dri
+    depends_on:
+      init-folders:
+        condition: service_completed_successfully
+    networks:
+      - media
+
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    ports:
+      - "17878:7878"
+    environment: *common-env
+    volumes:
+      - ./config/radarr:/config
+      - ./data:/data
+    depends_on:
+      init-folders:
+        condition: service_completed_successfully
+    networks:
+      - media
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    ports:
+      - "18089:8989"
+    environment: *common-env
+    volumes:
+      - ./config/sonarr:/config
+      - ./data:/data
+    depends_on:
+      init-folders:
+        condition: service_completed_successfully
+    networks:
+      - media
+
+  bazarr:
+    image: linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    ports:
+      - "16767:6767"
+    environment: *common-env
+    volumes:
+      - ./config/bazarr:/config
+      - ./data:/data
+    depends_on:
+      init-folders:
+        condition: service_completed_successfully
+    networks:
+      - media
+
+  ############################################################
+  # DESCARGAS Y GESTIÓN — Prowlarr, qBittorrent, Seerr
+  ############################################################
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    ports:
+      - "19696:9696"
+    environment: *common-env
+    volumes:
+      - ./config/prowlarr:/config
+    networks:
+      - media
+
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    ports:
+      - "18091:8080"
+      - "16881:6881"
+      - "16881:6881/udp"
+    environment:
+      <<: *common-env
+      WEBUI_PORTS: 8080/tcp
+      LIBTORRENT: v1
+    volumes:
+      - ./config/qbittorrent:/config
+      - ./data:/data
+    depends_on:
+      init-folders:
+        condition: service_completed_successfully
+    networks:
+      - media
+
+  seerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: seerr
+    restart: unless-stopped
+    ports:
+      - "15055:5055"
+    environment: *common-env
+    volumes:
+      - ./config/seerr:/config
+    networks:
+      - media
+
+  ############################################################
+  # LECTURA Y MÚSICA — Lidarr y Readarr
+  ############################################################
+  lidarr:
+    image: linuxserver/lidarr:latest
+    container_name: lidarr
+    restart: unless-stopped
+    ports:
+      - "18686:8686"
+    environment: *common-env
+    volumes:
+      - ./config/lidarr:/config
+      - ./data:/data
+    depends_on:
+      init-folders:
+        condition: service_completed_successfully
+    networks:
+      - media
+
+  readarr:
+    image: linuxserver/readarr:develop-0.4.18.2805-ls157
+    container_name: readarr
+    restart: unless-stopped
+    ports:
+      - "18787:8787"
+    environment: *common-env
+    volumes:
+      - ./config/readarr:/config
+      - ./data:/data
+    depends_on:
+      init-folders:
+        condition: service_completed_successfully
+    networks:
+      - media
+
+############################################################
+# REDES Y VOLÚMENES EXTERNOS
+############################################################
+networks:
+  media:
+    name: media_network
+
+volumes:
+  immich-ml-cache:

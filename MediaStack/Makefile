@@ -45,17 +45,19 @@ check-env:
 	fi
 
 init: check-env ## Inicializa carpetas y despliega servicios
-	@echo "$(CYAN)Inicializando estructura de carpetas...$(NC)"
-	@mkdir -p config data
-	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) run --rm init-folders
-	@echo "$(CYAN)Desplegando servicios...$(NC)"
-	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
-	@echo "$(GREEN)✓ Stack desplegado con éxito$(NC)"
+    @grep -q '^DB_PASSWORD=change_me$$' .env && echo "$(RED)Error: ¡Debes cambiar DB_PASSWORD en el archivo .env antes de iniciar!$(NC)" && exit 1 || true
+    @echo "$(CYAN)Inicializando estructura de carpetas...$(NC)"
+    @mkdir -p config data
+    @docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) run --rm init-folders
+    @echo "$(CYAN)Desplegando servicios...$(NC)"
+    @docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
+    @echo "$(GREEN)✓ Stack desplegado con éxito$(NC)"
 
 up: check-env ## Despliega todos los servicios
-	@echo "$(CYAN)Desplegando servicios...$(NC)"
-	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
-	@echo "$(GREEN)✓ Servicios iniciados$(NC)"
+    @grep -q '^DB_PASSWORD=change_me$$' .env && echo "$(RED)Error: ¡Debes cambiar DB_PASSWORD en el archivo .env antes de iniciar!$(NC)" && exit 1 || true
+    @echo "$(CYAN)Desplegando servicios...$(NC)"
+    @docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
+    @echo "$(GREEN)✓ Servicios iniciados$(NC)"
 
 down: ## Detiene todos los contenedores
 	@echo "$(CYAN)Deteniendo servicios...$(NC)"
@@ -92,10 +94,10 @@ update: check-env ## Actualiza imágenes y reinicia
 	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d --remove-orphans
 	@echo "$(GREEN)✓ Actualización completada$(NC)"
 
-clean: ## Limpia recursos no utilizados
-	@echo "$(CYAN)Limpiando...$(NC)"
-	@docker system prune -f
-	@echo "$(GREEN)✓ Limpieza completada$(NC)"
+clean: ## Limpia recursos del proyecto (sin afectar al host)
+    @echo "$(CYAN)Limpiando proyecto...$(NC)"
+    @docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) down --remove-orphans
+    @echo "$(GREEN)✓ Limpieza completada$(NC)"
 
 shell-jellyfin: ## Accede a Jellyfin
 	@docker exec -it jellyfin sh

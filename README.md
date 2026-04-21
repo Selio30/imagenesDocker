@@ -23,8 +23,8 @@ Self-hosted Airtable alternative with Redis caching layer for high-performance.
 ## 🛠️ Global Architecture Principles
 
 All projects within this repository adhere to the following deployment standards:
-- **Atomic Operations:** Managed via `Makefile` for consistent deployment lifecycles (`make init`, `make up`, `make down`).
-- **Security by Default:** Services are not exposed to the WAN by default; sensitive variables are stripped into `.env` files (ignored via Git).
+- **Atomic Operations:** Managed via Makefiles for consistent deployment lifecycles (specific targets like `make up` or `make start` vary by stack, see individual project documentation).
+- **Security Awareness:** Services publish ports to the host by default for LAN access. For VPS or public deployments, explicit firewalling or localhost-binding (`127.0.0.1:PORT`) is required. Where applicable, sensitive variables are managed via `.env` files.
 - **Network Isolation:** Each stack operates within its own dedicated Docker bridge network.
 - **Reproducibility:** Images are version-pinned where necessary to prevent breaking upstream changes.
 

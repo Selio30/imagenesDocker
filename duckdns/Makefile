@@ -31,13 +31,13 @@ check-env:
 	fi
 
 init: check-env ## Inicializa el entorno y despliega el servicio
-	@grep -q 'your_token_here' .env && echo "$(RED)Error: ¡Debes cambiar el token y los subdominios en el archivo .env antes de iniciar!$(NC)" && exit 1 || true
+	@grep -E -q 'your_token_here|subdomain1,subdomain2' .env && echo "$(RED)Error: ¡Debes configurar un TOKEN válido y tus SUBDOMAINS reales en el archivo .env antes de iniciar!$(NC)" && exit 1 || true
 	@echo "$(CYAN)Desplegando servicio DuckDNS...$(NC)"
 	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
 	@echo "$(GREEN)✓ Contenedor desplegado con éxito$(NC)"
 
 up: check-env ## Despliega el servicio de DuckDNS
-	@grep -q 'your_token_here' .env && echo "$(RED)Error: ¡Debes cambiar el token en el archivo .env antes de iniciar!$(NC)" && exit 1 || true
+	@grep -E -q 'your_token_here|subdomain1,subdomain2' .env && echo "$(RED)Error: ¡Debes configurar un TOKEN válido y tus SUBDOMAINS reales en el archivo .env antes de iniciar!$(NC)" && exit 1 || true
 	@echo "$(CYAN)Desplegando servicio...$(NC)"
 	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
 	@echo "$(GREEN)✓ Servicio iniciado$(NC)"

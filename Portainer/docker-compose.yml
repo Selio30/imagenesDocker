@@ -1,5 +1,6 @@
 services:
   portainer:
+    # Intentionally using :latest for homelab auto-updates
     image: portainer/portainer-ce:latest
     container_name: portainer
     restart: unless-stopped
@@ -7,8 +8,8 @@ services:
       - no-new-privileges:true
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/data
     ports:
-      - "19443:9443" # Interfaz Web HTTPS
-      #- "18000:8000" # Solo necesario si vas a añadir Nodos Edge (opcional)
+      - "127.0.0.1:19443:9443" # HTTPS Web UI
+      #- "127.0.0.1:18000:8000" # Only required if adding Edge Nodes (optional)

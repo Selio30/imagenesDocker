@@ -1,0 +1,9 @@
+db_data/
+glpi_data/
+.env
+.DS_Store
+*.log
+*.swp
+*.swo
+.vscode/
+.idea/

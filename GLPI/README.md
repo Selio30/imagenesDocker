@@ -17,7 +17,7 @@ This stack provides a fully isolated, reproducible environment orchestrated via 
 - **Granular Lifecycle Management** — Makefile targets for `up`, `down`, `restart`, `logs`, `status`, and `clean`
 - **Timezone-Aware** — Configurable via `TIMEZONE` environment variable (default: `Europe/Madrid`)
 - **Compose Lint Compliance** — Clean `docker compose config` validation; no warnings on orphan or dependency resolution
-- **Audit-Ready Documentation** — Full Mermaid architecture diagrams, security posture notes, and file-by-file guide
+- **Scalable Architecture** — Removed hardcoded container names to allow parallel deployments on the same Docker host
 
 ---
 
@@ -25,11 +25,11 @@ This stack provides a fully isolated, reproducible environment orchestrated via 
 
 | Component         | Technology                           |
 |-------------------|--------------------------------------|
-| **Web App**       | GLPI (`diouxx/glpi:latest`)          |
-| **Database**      | MariaDB 10.11                        |
+| **Web App** | GLPI (`diouxx/glpi:latest`)          |
+| **Database** | MariaDB 10.11                        |
 | **Orchestration** | Docker Compose (v3.8)                |
-| **Automation**    | GNU Make >= 4.0                      |
-| **Secret Mgmt**   | `.env` file (externalised)           |
+| **Automation** | GNU Make >= 4.0                      |
+| **Secret Mgmt** | `.env` file (externalised)           |
 
 ---
 
@@ -39,8 +39,8 @@ The flowchart below captures the end-to-end traversal of a user request through 
 
 ```mermaid
 flowchart LR
-    U["👤 User / Agent"] -->|"HTTP :8080<br/>(loopback)"| G["🌐 GLPI Web Container<br/>glpi-web-lab"]
-    G -->|"TCP :3306<br/>mariadb DNS"| M["🔐 MariaDB Container<br/>glpi-db-lab"]
+    U["👤 User / Agent"] -->|"HTTP :8080<br/>(loopback)"| G["🌐 GLPI Web Container"]
+    G -->|"TCP :3306<br/>mariadb DNS"| M["🔐 MariaDB Container"]
     M -->|"Result sets"| G
     G -->|"Session / plugins<br/>read & write"| V1["📁 glpi_data Volume<br/>./glpi_data"]
     M -->|"InnoDB persistence"| V2["📁 db_data Volume<br/>./db_data"]
@@ -66,10 +66,10 @@ The sequence diagram models the three canonical operations in a GLPI session —
 ```mermaid
 sequenceDiagram
     participant U as User / Agent
-    participant A as Apache 2.4 + PHP<br/>(glpi-web-lab)
+    participant A as Apache 2.4 + PHP<br/>(GLPI Web)
     participant S as GLPI Engine
     participant F as glpi_data Volume
-    participant M as MariaDB 10.11<br/>(glpi-db-lab)
+    participant M as MariaDB 10.11
     participant D as db_data Volume
 
     Note over U,D: ─── Phase 1: Authentication ───
@@ -123,7 +123,7 @@ graph TB
     end
 
     subgraph L2["Layer 2 — Web Application"]
-        G["GLPI Container<br/>glpi-web-lab"]
+        G["GLPI Container"]
         A2["Apache 2.4<br/>mod_php / php-fpm"]
         PHP["PHP 8.x<br/>Extensions: mysqli, gd,<br/>session, json, xml, mbstring"]
         PL["GLPI Plugins<br/>FusionInventory,<br/>Accounts, Fields, ..."]
@@ -133,7 +133,7 @@ graph TB
     end
 
     subgraph L3["Layer 3 — Persistence"]
-        M["MariaDB Container<br/>glpi-db-lab"]
+        M["MariaDB Container"]
         I["InnoDB Engine<br/>ACID transactions<br/>Row-level locking"]
         M --- I
     end
@@ -192,15 +192,6 @@ flowchart LR
     J --> K["Apache 2.4 listens<br/>PHP extensions load<br/>GLPI boot sequence"]
 ```
 
-**Key steps:**
-
-1. **Image resolution** — Compose resolves `mariadb:10.11` and `diouxx/glpi:latest`. If absent locally, they are pulled from Docker Hub.
-2. **Network provisioning** — A dedicated bridge network is created with embedded DNS resolution (service name → container IP).
-3. **Volume preparation** — Host directories `./db_data` and `./glpi_data` are created if missing (handled by `make init`).
-4. **Database bootstrap** — MariaDB starts first, initialises the InnoDB data directory, and executes the `MARIADB_*` environment variables to create the `glpidb` schema and `glpi_user` account.
-5. **Healthcheck gating** — Docker runs `healthcheck.sh --connect --innodb_initialized` every 10s (up to 5 retries). The GLPI container only starts after this passes.
-6. **Application bootstrap** — Apache and PHP start inside the GLPI container. If no database schema exists, the web installer is presented to the user.
-
 ### Runtime Process
 
 ```mermaid
@@ -228,15 +219,6 @@ stateDiagram-v2
     H --> [*]: docker compose down
 ```
 
-**Startup sequence in detail:**
-
-1. **Container creation** — Docker Engine allocates the container cgroup, mounts volumes, and sets up the network namespace.
-2. **Apache initialisation** — The entrypoint (`apache2-foreground`) launches Apache 2.4, loads `mod_php`, parses virtual host configuration, and opens port 80.
-3. **PHP extension loading** — PHP enables `mysqli`, `gd`, `session`, `json`, `xml`, and `mbstring` via `php.ini` configuration.
-4. **Database handshake** — GLPI attempts a MySQL connection to the `mariadb` hostname on port 3306. On first boot, no schema exists, so the installer flow is triggered.
-5. **Steady state** — After the web installer completes, every subsequent restart immediately serves the full GLPI application.
-6. **Fault recovery** — If either container exits unexpectedly, `restart: unless-stopped` re-creates it. After 5 consecutive healthcheck failures MariaDB is marked unhealthy and the GLPI container will not start.
-
 ---
 
 ## 📂 File-by-File Guide
@@ -258,7 +240,7 @@ stateDiagram-v2
 ### Prerequisites
 
 - Docker Engine >= 24.x
-- Docker Compose plugin (v2) or standalone `docker-compose`
+- Docker Compose plugin (v2)
 - GNU Make >= 4.0
 
 ### Step-by-Step
@@ -380,5 +362,4 @@ rm -rf db_data glpi_data
 
 ## Author
 
-**Sergio Barbero — Selio30**  
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/Selio30/)
+**Sergio Barbero — Selio30** [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/Selio30/)

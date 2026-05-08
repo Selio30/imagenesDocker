@@ -34,8 +34,8 @@ Enterprise-grade Dynamic DNS management for real-time IP synchronization.
 ## 🛠️ Global Architecture Principles
 
 All projects within this repository adhere to the following deployment standards:
-- **Atomic Operations:** Managed via Makefiles for consistent deployment lifecycles (specific targets like `make init`, `make up`, and `make clean`).
-- **Security Awareness:** Sensitive UI endpoints are loopback-bound (`127.0.0.1`) by default. For remote deployments, explicit reverse proxying is required. Sensitive variables are strictly managed via `.env` files and excluded from version control.
+- **Atomic Operations:** Managed via Makefiles for consistent deployment lifecycles. Standard targets typically include `make init`, `make up` (or `make start`, depending on the stack's specific legacy), and `make clean`.
+- **Security Awareness:** Where appropriate for administrative and management tools (e.g., Portainer, GLPI), sensitive UI endpoints are loopback-bound (`127.0.0.1`) by default to prevent unauthorized network exposure. Services intended for LAN broadcast (e.g., MediaStack) expose ports directly. For remote deployments, explicit reverse proxying is required. Sensitive variables are strictly managed via `.env` files and excluded from version control.
 - **Network Isolation:** Each stack operates within its own dedicated Docker bridge network or uses host mode exclusively for specific network detection needs.
 - **Reproducibility:** Images are version-pinned where stability is critical, or tracked to `:latest` with explicit documentation for lab update workflows.
 

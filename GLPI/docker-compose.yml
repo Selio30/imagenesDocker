@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: glpi-db-lab
+    env_file:
+      - .env
+    volumes:
+      - ./db_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  glpi:
+    # Intentionally using :latest to track community image updates
+    image: diouxx/glpi:latest
+    container_name: glpi-web-lab
+    ports:
+      - "127.0.0.1:8080:80" # Bloqueado a localhost por seguridad
+    environment:
+      - TIMEZONE=${TIMEZONE:-Europe/Madrid}
+    volumes:
+      - ./glpi_data:/var/www/html/glpi
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: unless-stopped

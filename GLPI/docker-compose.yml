@@ -3,7 +3,6 @@ version: "3.8"
 services:
   mariadb:
     image: mariadb:10.11
-    container_name: glpi-db-lab
     env_file:
       - .env
     volumes:
@@ -18,7 +17,6 @@ services:
   glpi:
     # Intentionally using :latest to track community image updates
     image: diouxx/glpi:latest
-    container_name: glpi-web-lab
     ports:
       - "127.0.0.1:8080:80" # Bloqueado a localhost por seguridad
     environment:

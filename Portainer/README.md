@@ -7,12 +7,12 @@ Production-ready deployment of **Portainer Community Edition** that provides a u
 ## Key Features
 
 - **Visual Container Management** — Full lifecycle control (start, stop, restart, remove, inspect) without CLI dependence.
-- **Read-Only Docker Socket** — Mounted as `ro` to minimize attack surface; Portainer audits without mutating the daemon directly.
-- **Automatic SSL Termination** — Self-signed certificate generation on first boot; HTTPS exposed on a non-standard port to bypass common scanning patterns.
+- **Full Orchestration Socket** — Mounted with Read/Write access, allowing Portainer to deploy new Compose stacks and manage the full container lifecycle directly from the UI.
+- **Automatic SSL Termination** — Self-signed certificate generation on first boot; HTTPS exposed on a non-standard port and bound to localhost (`127.0.0.1`) by default to prevent unauthorized public bootstrapping.
 - **No-New-Privileges Hardening** — Container runs with `security_opt: no-new-privileges:true`, preventing privilege escalation via kernel vulnerabilities.
 - **Atomic Lifecycle Automation** — Full `Makefile` with idempotent targets for init, up, down, restart, logs, status, and clean operations.
 - **Persistent State** — BoltDB-backed database (`portainer.db`) and Chisel encryption keys survive container recreations via bind-mounted volume.
-- **Edge Agent Ready** — Chisel reverse tunnelling enabled by default; uncomment port `8000` to register remote Edge endpoints.
+- **Edge Agent Ready** — Chisel reverse tunnelling enabled by default; uncomment the edge port mapping (`127.0.0.1:18000:8000`) to register remote Edge endpoints safely.
 
 ---
 
@@ -20,7 +20,7 @@ Production-ready deployment of **Portainer Community Edition** that provides a u
 
 | Component | Technology |
 |---|---|
-| **Orchestration Platform** | Portainer CE 2.39.0 (`portainer/portainer-ce:latest`) |
+| **Orchestration Platform** | Portainer CE (Latest) (`portainer/portainer-ce:latest`) |
 | **Container Runtime** | Docker 29.4.x + Compose V2 |
 | **Database Engine** | BoltDB (embedded, file-based) |
 | **Reverse Tunnel** | Chisel (embedded in Portainer) |
@@ -36,14 +36,14 @@ High-level request flow from the moment an administrator opens the browser to th
 
 ```mermaid
 flowchart TD
-    A["👤 Administrator<br/>Opens Browser"] --> B["🌐 HTTPS Request<br/>https://localhost:19443"]
+    A["👤 Administrator<br/>Opens Browser (via SSH Tunnel)"] --> B["🌐 HTTPS Request<br/>https://localhost:19443"]
     B --> C{"Portainer CE<br/>TLS Termination"}
     C -->|"Self-signed cert<br/>accepted"| D["🔐 Authentication<br/>JWT Challenge"]
     D -->|"Valid credentials"| E["✅ Session Established<br/>JWT Token Issued"]
     E --> F["📊 Dashboard Loaded<br/>UI Bootstrap"]
 
     F --> G{"User Action"}
-    G -->|"List Containers"| H["🐳 Docker Socket Query<br/>(read-only)"]
+    G -->|"List Containers"| H["🐳 Docker Socket Query<br/>(Read/Write)"]
     G -->|"Deploy Stack"| I["📝 Compose File<br/>Submission"]
     G -->|"Manage Volumes"| J["💾 Volume Inspection"]
     G -->|"View Logs"| K["📜 Stream stdout/stderr"]
@@ -174,13 +174,13 @@ graph TB
     end
 
     subgraph "🔌 External Resources"
-        DOCKER_SOCK["🐳 Docker Socket<br/>Unix /var/run/docker.sock<br/>(read-only)"]
+        DOCKER_SOCK["🐳 Docker Socket<br/>Unix /var/run/docker.sock<br/>(Read/Write)"]
         LOCALTIME["⏰ Host Timezone<br/>bind mount"]
     end
 
     HOST -.-> DOCKER_SOCK
     HOST -.-> LOCALTIME
-    DOCKER_SOCK -.->|"ro mount"| ORCH
+    DOCKER_SOCK <==>|"RW mount"| ORCH
     LOCALTIME -.->|"ro mount"| HTTPS
 
     subgraph "🌍 Remote Infrastructure"
@@ -201,7 +201,7 @@ graph TB
 | **Network Layer** | Terminates TLS, manages HTTP/2 multiplexing, handles WebSocket upgrades for log streaming and terminal sessions. |
 | **Core Services** | Route API requests, enforce authentication, proxy Docker API calls, orchestrate Edge tunnel routing, manage SSL certificate lifecycle. |
 | **Persistence Layer** | Stores users, endpoint metadata, stack configurations, and cryptographic material. BoltDB provides ACID compliance without external dependencies. |
-| **External Resources** | Read-only Docker socket for daemon communication; host timezone bind mount for accurate log timestamps. |
+| **External Resources** | Read/Write Docker socket for full daemon orchestration; host timezone bind mount for accurate log timestamps. |
 
 ---
 
@@ -217,7 +217,7 @@ Portainer CE is an **upstream-distributed image** (`portainer/portainer-ce:lates
 4. **User Context** — Container runs as non-root `root` (Alpine default UID 0 with `no-new-privileges` constraint).
 5. **Entrypoint** — `/portainer` binary with HCL configuration and auto-detection of mount paths.
 
-> This deployment pulls the immutable upstream image. No custom image registry or multi-stage build is involved.
+> **Note:** This deployment intentionally tracks the `:latest` tag to facilitate automated homelab updates via tools like Watchtower.
 
 ### b. Runtime Process
 
@@ -228,7 +228,7 @@ STEP 1: Docker Engine pulls portainer/portainer-ce:latest (if not cached)
 STEP 2: Compose creates the Docker bridge network (portainer_default)
 STEP 3: Bind mounts are validated:
         ├── /etc/localtime → /etc/localtime:ro  (timezone sync)
-        ├── /var/run/docker.sock → /var/run/docker.sock:ro (Docker access)
+        ├── /var/run/docker.sock → /var/run/docker.sock (Docker access - RW)
         └── ./data → /data  (persistence)
 STEP 4: Container starts → /portainer entrypoint executes
 STEP 5: Portainer bootstrap sequence:
@@ -240,7 +240,7 @@ STEP 5: Portainer bootstrap sequence:
         ├── 5f. Start HTTPS server (port 9443, web UI + API)
         └── 5g. Start Chisel tunnel listener (port 8000, if configured)
 STEP 6: Healthcheck passes → Docker marks container as "healthy"
-STEP 7: Web UI available at https://host:19443
+STEP 7: Web UI available at https://localhost:19443
 ```
 
 ---
@@ -271,7 +271,7 @@ STEP 7: Web UI available at https://host:19443
 - Docker Engine ≥ 24.0
 - Docker Compose V2 (`docker compose` plugin)
 - GNU Make
-- Port `19443` available on the host
+- Port `19443` available on the host (bound to localhost)
 
 ### Quick Start
 
@@ -297,7 +297,7 @@ mkdir -p data
 docker compose -f docker-compose.yml -p portainer up -d
 ```
 
-The web UI is immediately available at **`https://localhost:19443`**. On first access, Portainer prompts for an administrator password.
+The web UI is available at **`https://localhost:19443`**. Due to the security binding, you must access this via an SSH tunnel (`ssh -L 19443:localhost:19443 user@server_ip`) or a reverse proxy. On first access, Portainer prompts for an administrator password.
 
 ---
 
@@ -305,16 +305,16 @@ The web UI is immediately available at **`https://localhost:19443`**. On first a
 
 ### Environment & Ports
 
-This deployment uses **no `.env` file** — all configuration is self-contained in `docker-compose.yml`. Customize the following before production use:
+This deployment uses **no `.env` file** — all configuration is self-contained in `docker-compose.yml`. 
 
 | Parameter | File Location | Default | Description |
 |---|---|---|---|
-| `PORTAINER_HTTPS_PORT` | `docker-compose.yml:13` | `19443:9443` | Host port for HTTPS web UI |
-| `PORTAINER_EDGE_PORT` | `docker-compose.yml:14` | `8000` (commented) | Host port for Edge reverse tunnelling |
+| `PORTAINER_HTTPS_PORT` | `docker-compose.yml:13` | `127.0.0.1:19443:9443` | Host port for HTTPS web UI, locked to localhost |
+| `PORTAINER_EDGE_PORT` | `docker-compose.yml:14` | `127.0.0.1:18000:8000` (commented) | Host port for Edge reverse tunnelling |
 | `TZ` | `docker-compose.yml:9` | Host `/etc/localtime` | Timezone synchronization via bind mount |
 | `PORTAINER_DATA` | `docker-compose.yml:11` | `./data:/data` | Persistent data directory |
 
-> **Security Note:** For VPS or public deployments, bind the HTTPS port to `127.0.0.1:19443` and place a reverse proxy (Caddy, Nginx, Traefik) with Let's Encrypt in front. Do not expose the raw self-signed certificate to the internet.
+> **Security Note:** By default, this deployment binds the UI to `127.0.0.1` to prevent unauthorized initialization. To access the UI remotely without an SSH tunnel, you must place a reverse proxy (e.g., Nginx Proxy Manager, Traefik) in front of it.
 
 ### Makefile Reference
 
@@ -337,7 +337,7 @@ make clean     # Remove container + orphans (preserves data/)
 # Monitor real-time logs after deployment
 make logs
 
-# Quick health check — confirm HTTPS endpoint is responsive
+# Quick health check — confirm HTTPS endpoint is responsive locally
 curl -k -o /dev/null -s -w "%{http_code}" https://localhost:19443
 # Expected: 200 (redirects to /#!/init/admin)
 

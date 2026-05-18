@@ -100,10 +100,10 @@ clean: ## Limpia recursos del proyecto (sin afectar al host)
 	@echo "$(GREEN)✓ Limpieza completada$(NC)"
 
 shell-jellyfin: ## Accede a Jellyfin
-	@docker exec -it jellyfin sh
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec jellyfin sh
 
 shell-radarr: ## Accede a Radarr
-	@docker exec -it radarr sh
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec radarr sh
 
 shell-sonarr: ## Accede a Sonarr
 	@docker exec -it sonarr sh
@@ -111,8 +111,8 @@ shell-sonarr: ## Accede a Sonarr
 shell-qbittorrent: ## Accede a qBittorrent
 	@docker exec -it qbittorrent sh
 
-shell-immich: ## Accede a Immich
-	@docker exec -it immich_server sh
+shell-immich: ## Accede a Immich Server
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec immich-server sh
 
 shell-lidarr: ## Accede a Lidarr
 	@docker exec -it lidarr sh
@@ -127,4 +127,4 @@ shell-prowlarr: ## Accede a Prowlarr
 	@docker exec -it prowlarr sh
 
 shell-seerr: ## Accede a Jellyseerr
-	@docker exec -it seerr sh
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec seerr sh

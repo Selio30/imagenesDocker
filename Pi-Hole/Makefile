@@ -11,7 +11,7 @@ YELLOW := \033[0;33m
 RED := \033[0;31m
 NC := \033[0m
 
-.PHONY: help init up down restart status logs logs-sync clean network-check
+.PHONY: help check-env init up down restart status logs logs-sync clean network-check
 
 help:
 	@echo "$(CYAN)=========================================="
@@ -24,7 +24,21 @@ network-check: ## Muestra las interfaces de red del host para configurar el .env
 	@echo "$(CYAN)Busca tu interfaz principal (ej: eth0, ens18) para la variable MACVLAN_PARENT_INTERFACE:$(NC)"
 	@ip -br a
 
-init: ## Crea carpetas y despliega
+check-env: ## Verifica que .env existe y las credenciales han sido configuradas
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)⚠️  Archivo .env no encontrado. Creando desde .env.example...$(NC)"; \
+		cp .env.example .env; \
+		echo "$(RED)❌ Por favor, edita el archivo .env con tus credenciales e IPs antes de continuar.$(NC)"; \
+		exit 1; \
+	fi
+	@if grep -q "CHANGE_ME" .env; then \
+		echo "$(RED)❌ ERROR: El archivo .env todavía contiene contraseñas por defecto (CHANGE_ME).$(NC)"; \
+		echo "$(RED)⚠️  Debes cambiarlas antes de desplegar por seguridad.$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)✓ Archivo .env validado correctamente.$(NC)"
+
+init: check-env ## Crea carpetas y despliega
 	@echo "$(CYAN)Inicializando directorios...$(NC)"
 	@mkdir -p primary/etc-pihole primary/etc-dnsmasq.d
 	@mkdir -p secondary/etc-pihole secondary/etc-dnsmasq.d
@@ -32,7 +46,7 @@ init: ## Crea carpetas y despliega
 	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
 	@echo "$(GREEN)✓ Stack HA desplegado$(NC)"
 
-up: ## Despliega los servicios
+up: check-env ## Despliega los servicios
 	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
 
 down: ## Detiene los servicios

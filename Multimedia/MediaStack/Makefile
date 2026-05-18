@@ -27,7 +27,7 @@ help:
 	@echo "  • Readarr   - http://localhost:18787"
 	@echo "  • Prowlarr  - http://localhost:19696"
 	@echo "  • qBittorrent - http://localhost:18091"
-	@echo "  • Overseerr - http://localhost:15055"
+	@echo "  • Jellyseerr - http://localhost:15055"
 	@echo "  • Immich    - http://localhost:18000"
 	@echo ""
 	@echo "$(CYAN)Comandos disponibles:$(NC)"
@@ -45,19 +45,19 @@ check-env:
 	fi
 
 init: check-env ## Inicializa carpetas y despliega servicios
-    @grep -q '^DB_PASSWORD=change_me$$' .env && echo "$(RED)Error: ¡Debes cambiar DB_PASSWORD en el archivo .env antes de iniciar!$(NC)" && exit 1 || true
-    @echo "$(CYAN)Inicializando estructura de carpetas...$(NC)"
-    @mkdir -p config data
-    @docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) run --rm init-folders
-    @echo "$(CYAN)Desplegando servicios...$(NC)"
-    @docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
-    @echo "$(GREEN)✓ Stack desplegado con éxito$(NC)"
+	@grep -q '^DB_PASSWORD=change_me$$' .env && echo "$(RED)Error: ¡Debes cambiar DB_PASSWORD en el archivo .env antes de iniciar!$(NC)" && exit 1 || true
+	@echo "$(CYAN)Inicializando estructura de carpetas...$(NC)"
+	@mkdir -p config data
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) run --rm init-folders
+	@echo "$(CYAN)Desplegando servicios...$(NC)"
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
+	@echo "$(GREEN)✓ Stack desplegado con éxito$(NC)"
 
 up: check-env ## Despliega todos los servicios
-    @grep -q '^DB_PASSWORD=change_me$$' .env && echo "$(RED)Error: ¡Debes cambiar DB_PASSWORD en el archivo .env antes de iniciar!$(NC)" && exit 1 || true
-    @echo "$(CYAN)Desplegando servicios...$(NC)"
-    @docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
-    @echo "$(GREEN)✓ Servicios iniciados$(NC)"
+	@grep -q '^DB_PASSWORD=change_me$$' .env && echo "$(RED)Error: ¡Debes cambiar DB_PASSWORD en el archivo .env antes de iniciar!$(NC)" && exit 1 || true
+	@echo "$(CYAN)Desplegando servicios...$(NC)"
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
+	@echo "$(GREEN)✓ Servicios iniciados$(NC)"
 
 down: ## Detiene todos los contenedores
 	@echo "$(CYAN)Deteniendo servicios...$(NC)"
@@ -95,15 +95,15 @@ update: check-env ## Actualiza imágenes y reinicia
 	@echo "$(GREEN)✓ Actualización completada$(NC)"
 
 clean: ## Limpia recursos del proyecto (sin afectar al host)
-    @echo "$(CYAN)Limpiando proyecto...$(NC)"
-    @docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) down --remove-orphans
-    @echo "$(GREEN)✓ Limpieza completada$(NC)"
+	@echo "$(CYAN)Limpiando proyecto...$(NC)"
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) down --remove-orphans
+	@echo "$(GREEN)✓ Limpieza completada$(NC)"
 
 shell-jellyfin: ## Accede a Jellyfin
-	@docker exec -it jellyfin sh
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec jellyfin sh
 
 shell-radarr: ## Accede a Radarr
-	@docker exec -it radarr sh
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec radarr sh
 
 shell-sonarr: ## Accede a Sonarr
 	@docker exec -it sonarr sh
@@ -111,8 +111,8 @@ shell-sonarr: ## Accede a Sonarr
 shell-qbittorrent: ## Accede a qBittorrent
 	@docker exec -it qbittorrent sh
 
-shell-immich: ## Accede a Immich
-	@docker exec -it immich_server sh
+shell-immich: ## Accede a Immich Server
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec immich-server sh
 
 shell-lidarr: ## Accede a Lidarr
 	@docker exec -it lidarr sh
@@ -126,5 +126,5 @@ shell-bazarr: ## Accede a Bazarr
 shell-prowlarr: ## Accede a Prowlarr
 	@docker exec -it prowlarr sh
 
-shell-seerr: ## Accede a Overseerr
-	@docker exec -it seerr sh
+shell-seerr: ## Accede a Jellyseerr
+	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) exec seerr sh

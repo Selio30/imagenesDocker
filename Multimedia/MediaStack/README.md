@@ -30,7 +30,7 @@ Built on Docker Compose and orchestrated via a Makefile-based CLI, MediaStack de
 | Subtitles | Bazarr | Automated subtitle downloading |
 | Request Management | Jellyseerr | User-friendly content requests |
 | Database | PostgreSQL 14 (pgvecto.rs) | Immich persistent storage & ML features |
-| Cache | Redis 6.2 | Immich caching layer |
+| Cache | Redis 7 (Alpine) | Immich caching layer |
 
 ---
 
@@ -118,7 +118,7 @@ graph TB
 
         subgraph "Core Services"
             DB[immich-postgres<br/>PostgreSQL 14]
-            RC[immich-redis<br/>Redis 6.2]
+            RC[immich-redis<br/>Redis 7]
             ML[immich-machine-learning<br/>Python/ML]
             SRV[immich-server<br/>Node.js]
         end

@@ -5,5 +5,5 @@
 *.swo
 .vscode/
 .idea/
-etc-pihole/
-etc-dnsmasq.d/
+primary/
+secondary/

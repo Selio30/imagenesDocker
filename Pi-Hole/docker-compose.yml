@@ -1,0 +1,67 @@
+services:
+  pihole-primary:
+    image: pihole/pihole:latest
+    env_file:
+      - .env
+    environment:
+      TZ: 'Europe/Madrid'
+      WEBPASSWORD: '${WEBPASSWORD_PRIMARY}'
+    volumes:
+      - './primary/etc-pihole:/etc/pihole'
+      - './primary/etc-dnsmasq.d:/etc/dnsmasq.d'
+    networks:
+      pihole_macvlan:
+        ipv4_address: ${PIHOLE_PRIMARY_IP}
+    healthcheck:
+      test: ["CMD", "dig", "+short", "pi.hole", "@127.0.0.1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  pihole-secondary:
+    image: pihole/pihole:latest
+    env_file:
+      - .env
+    environment:
+      TZ: 'Europe/Madrid'
+      WEBPASSWORD: '${WEBPASSWORD_SECONDARY}'
+    volumes:
+      - './secondary/etc-pihole:/etc/pihole'
+      - './secondary/etc-dnsmasq.d:/etc/dnsmasq.d'
+    networks:
+      pihole_macvlan:
+        ipv4_address: ${PIHOLE_SECONDARY_IP}
+    healthcheck:
+      test: ["CMD", "dig", "+short", "pi.hole", "@127.0.0.1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  orbital-sync:
+    image: mattwebbio/orbital-sync:latest
+    env_file:
+      - .env
+    environment:
+      - PRIMARY_HOST_BASE_URL=http://${PIHOLE_PRIMARY_IP}
+      - PRIMARY_HOST_PASSWORD=${WEBPASSWORD_PRIMARY}
+      - SECONDARY_HOST_1_BASE_URL=http://${PIHOLE_SECONDARY_IP}
+      - SECONDARY_HOST_1_PASSWORD=${WEBPASSWORD_SECONDARY}
+      - INTERVAL_MINUTES=${SYNC_INTERVAL_MINUTES}
+    depends_on:
+      pihole-primary:
+        condition: service_healthy
+      pihole-secondary:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  pihole_macvlan:
+    driver: macvlan
+    driver_opts:
+      parent: ${MACVLAN_PARENT_INTERFACE}
+    ipam:
+      config:
+        - subnet: ${MACVLAN_SUBNET}
+          gateway: ${MACVLAN_GATEWAY}

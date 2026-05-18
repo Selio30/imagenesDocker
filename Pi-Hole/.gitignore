@@ -1,0 +1,9 @@
+.env
+.DS_Store
+*.log
+*.swp
+*.swo
+.vscode/
+.idea/
+primary/
+secondary/

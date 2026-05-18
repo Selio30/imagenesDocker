@@ -4,30 +4,42 @@ Welcome to my central repository for containerized infrastructure and self-hoste
 
 ## 📁 Project Index
 
-Below is the catalog of currently deployed and documented infrastructure stacks:
+Below is the catalog of currently deployed and documented infrastructure stacks, organized by functional category:
 
-### [1. MediaStack](./MediaStack/README.md)
-Complete, automated media server ecosystem for downloading, organizing, and streaming multimedia content.
-* **Core Services:** Jellyfin, Immich (ML & pgvecto.rs), ARR Suite (Radarr, Sonarr, etc.).
-* **Key Features:** Hardlink optimization, Intel QuickSync hardware transcoding, and internal network isolation.
+### 🛡️ Redes y Seguridad (Networks & Security)
 
-### [2. NocoDB Enterprise Stack](./NocoDB/README.md)
-Self-hosted Airtable alternative with a Redis caching layer for high-performance data management.
-* **Core Services:** NocoDB, Redis 7 (Alpine), SQLite.
-* **Key Features:** Bind-mounted persistent storage and production-ready restart policies.
+* **[Pi-Hole HA DNS Sinkhole](./Redes_y_Seguridad/Pi-Hole/README.md)**
+  Network-wide ad blocking and DNS filtering engine for implicit protection of every LAN device.
+  * **Key Features:** FTLDNS-based resolution, Gravity blocklist compilation, web admin dashboard, Makefile lifecycle automation, and credential isolation via `.env`.
 
-### [3. GLPI HelpDesk Stack](./GLPI/README.md)
-IT Asset Management and Service Desk platform optimized for technical department operations.
-* **Core Services:** GLPI (Apache/PHP), MariaDB 10.11.
-* **Key Features:** Health-checked dependency orchestration, loopback binding for security, and externalized secrets.
+* **[DuckDNS Updater](./Redes_y_Seguridad/duckdns/README.md)**
+  Enterprise-grade Dynamic DNS management for real-time IP synchronization.
+  * **Key Features:** Host network detection, automated Makefile validation, and unprivileged execution.
 
-### [4. Portainer CE](./Portainer/README.md)
-Centralized Docker management interface for visual orchestration.
-* **Key Features:** Full orchestration via Docker Socket (RW), loopback-bound HTTPS access, and automated lifecycle management.
+### ⚙️ Gestión e Infraestructura (Management & Infrastructure)
 
-### [5. DuckDNS Updater](./duckdns/README.md)
-Enterprise-grade Dynamic DNS management for real-time IP synchronization.
-* **Key Features:** Host network detection, automated Makefile validation, and unprivileged execution.
+* **[GLPI HelpDesk Stack](./Gestion_e_Infraestructura/GLPI/README.md)**
+  IT Asset Management and Service Desk platform optimized for technical department operations.
+  * **Core Services:** GLPI (Apache/PHP), MariaDB 10.11.
+  * **Key Features:** Health-checked dependency orchestration, loopback binding for security, and externalized secrets.
+
+* **[Portainer CE](./Gestion_e_Infraestructura/Portainer/README.md)**
+  Centralized Docker management interface for visual orchestration.
+  * **Key Features:** Full orchestration via Docker Socket (RW), loopback-bound HTTPS access, and automated lifecycle management.
+
+### 🗄️ Aplicaciones y Datos (Apps & Data)
+
+* **[NocoDB Enterprise Stack](./Aplicaciones_y_Datos/NocoDB/README.md)**
+  Self-hosted Airtable alternative with a Redis caching layer for high-performance data management.
+  * **Core Services:** NocoDB, Redis 7 (Alpine), SQLite.
+  * **Key Features:** Bind-mounted persistent storage and production-ready restart policies.
+
+### 🍿 Multimedia
+
+* **[MediaStack](./Multimedia/MediaStack/README.md)**
+  Complete, automated media server ecosystem for downloading, organizing, and streaming multimedia content.
+  * **Core Services:** Jellyfin, Immich (ML & pgvecto.rs), ARR Suite (Radarr, Sonarr, etc.).
+  * **Key Features:** Hardlink optimization, Intel QuickSync hardware transcoding, and internal network isolation.
 
 ---
 

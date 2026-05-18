@@ -11,7 +11,6 @@ services:
   ############################################################
   init-folders:
     image: alpine:latest
-    container_name: init_folders
     volumes:
       - ./data:/data
     command: >
@@ -24,7 +23,6 @@ services:
   # IMMICH — Gestión de Fotos y Vídeos Personales
   ############################################################
   immich-server:
-    container_name: immich_server
     image: ghcr.io/immich-app/immich-server:release
     volumes:
       - ./config/immich_library:/usr/src/app/upload
@@ -48,7 +46,6 @@ services:
       - media
 
   immich-machine-learning:
-    container_name: immich_machine_learning
     image: ghcr.io/immich-app/immich-machine-learning:release
     volumes:
       - immich-ml-cache:/cache
@@ -58,8 +55,7 @@ services:
       - media
 
   immich-redis:
-    container_name: immich_redis
-    image: redis:6.2-alpine
+    image: redis:7-alpine
     healthcheck:
       test: redis-cli ping || exit 1
       interval: 10s
@@ -70,7 +66,6 @@ services:
       - media
 
   immich-postgres:
-    container_name: immich_postgres
     image: tensorchord/pgvecto-rs:pg14-v0.2.0-240529
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -92,7 +87,6 @@ services:
   ############################################################
   jellyfin:
     image: linuxserver/jellyfin:latest
-    container_name: jellyfin
     restart: unless-stopped
     ports:
       - "18001:8096"
@@ -110,7 +104,6 @@ services:
 
   radarr:
     image: linuxserver/radarr:latest
-    container_name: radarr
     restart: unless-stopped
     ports:
       - "17878:7878"
@@ -126,7 +119,6 @@ services:
 
   sonarr:
     image: linuxserver/sonarr:latest
-    container_name: sonarr
     restart: unless-stopped
     ports:
       - "18089:8989"
@@ -142,7 +134,6 @@ services:
 
   bazarr:
     image: linuxserver/bazarr:latest
-    container_name: bazarr
     restart: unless-stopped
     ports:
       - "16767:6767"
@@ -161,7 +152,6 @@ services:
   ############################################################
   prowlarr:
     image: linuxserver/prowlarr:latest
-    container_name: prowlarr
     restart: unless-stopped
     ports:
       - "19696:9696"
@@ -173,7 +163,6 @@ services:
 
   qbittorrent:
     image: linuxserver/qbittorrent:latest
-    container_name: qbittorrent
     restart: unless-stopped
     ports:
       - "18091:8080"
@@ -194,7 +183,6 @@ services:
 
   seerr:
     image: fallenbagel/jellyseerr:latest
-    container_name: seerr
     restart: unless-stopped
     ports:
       - "15055:5055"
@@ -209,7 +197,6 @@ services:
   ############################################################
   lidarr:
     image: linuxserver/lidarr:latest
-    container_name: lidarr
     restart: unless-stopped
     ports:
       - "18686:8686"
@@ -225,7 +212,6 @@ services:
 
   readarr:
     image: linuxserver/readarr:develop-0.4.18.2805-ls157
-    container_name: readarr
     restart: unless-stopped
     ports:
       - "18787:8787"

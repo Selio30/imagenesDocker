@@ -1,0 +1,7 @@
+.env
+config/
+data/
+*.log
+.DS_Store
+*.swp
+*.swo

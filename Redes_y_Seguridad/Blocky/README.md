@@ -289,7 +289,7 @@ The `unless-stopped` restart policy ensures the container automatically recovers
 ```bash
 # 1. Clone the repository
 git git@github.com:Selio30/imagenesDocker.git
-cd imagenesDocker/blocky-dns
+cd imagenesDocker/Redes_y_Seguridad/Blocky
 
 # 2. Initialise environment (creates .env from .env.example)
 make init

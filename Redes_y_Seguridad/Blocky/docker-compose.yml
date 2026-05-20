@@ -3,7 +3,6 @@ version: "3.8"
 services:
   blocky:
     image: spx01/blocky:${BLOCKY_VERSION:-latest}
-    # ELIMINADO: container_name: blocky_dns (para mantener consistencia con el resto del repo)
     env_file:
       - .env
     ports:
@@ -15,3 +14,8 @@ services:
     volumes:
       - ./config.yml:/app/config.yml:ro # Solo lectura (GitOps manda)
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

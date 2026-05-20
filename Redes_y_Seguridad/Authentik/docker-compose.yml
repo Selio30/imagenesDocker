@@ -16,6 +16,11 @@ services:
       POSTGRES_DB: ${PG_DB:-authentik}
     env_file:
       - .env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
     image: redis:7-alpine
@@ -28,13 +33,18 @@ services:
       timeout: 3s
     volumes:
       - ./data/redis:/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   server:
     image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG:-latest}
     restart: unless-stopped
     command: server
     healthcheck:
-      test: ["CMD-SHELL", "ak healthcheck"] # Uso de la herramienta de diagnóstico nativa
+      test: ["CMD-SHELL", "ak healthcheck"]
       start_period: 60s
       interval: 30s
       retries: 5
@@ -48,7 +58,7 @@ services:
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?AUTHENTIK_SECRET_KEY is required}
     volumes:
       - ./data/media:/media
-      - ./data/certs:/certs # Añadido para que el servidor pueda firmar peticiones SAML/OIDC
+      - ./data/certs:/certs
       - ./data/custom-templates:/templates
     env_file:
       - .env
@@ -60,13 +70,18 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   worker:
     image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG:-latest}
     restart: unless-stopped
     command: worker
     healthcheck:
-      test: ["CMD-SHELL", "ak healthcheck"] # Uso de la herramienta de diagnóstico nativa
+      test: ["CMD-SHELL", "ak healthcheck"]
       start_period: 30s
       interval: 30s
       retries: 5
@@ -91,3 +106,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

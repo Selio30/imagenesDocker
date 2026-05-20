@@ -9,7 +9,7 @@ services:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
-      - "4000:4000/tcp" # Puerto para la API HTTP y métricas
+      - "127.0.0.1:4000:4000/tcp" # API atada a loopback por seguridad
     environment:
       - TZ=${TZ}
     volumes:

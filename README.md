@@ -12,6 +12,10 @@ Below is the catalog of currently deployed and documented infrastructure stacks,
   Production-grade identity provider delivering SSO, MFA, and centralized identity brokering.
   * **Key Features:** Zero-trust loopback binding, automatic cryptographic bootstrapping, native healthchecks, and Docker outpost auto-discovery.
 
+* **[Vaultwarden Password Vault](./Redes_y_Seguridad/Vaultwarden/README.md)**
+  Self-hosted password manager compatible with Bitwarden clients, backed by a dedicated MariaDB instance.
+  * **Key Features:** Loopback binding, automated OpenSSL secret generation, signups disabled by default, and separated database credentials.
+
 * **[Blocky GitOps DNS](./Redes_y_Seguridad/Blocky/README.md)**
   Privacy-first, GitOps-powered DNS-level content filtering proxy with DoT upstreams.
   * **Key Features:** Zero-IP ad blocking, declarative YAML configuration, parallel DNS-over-TLS encryption, and hot-reload API.

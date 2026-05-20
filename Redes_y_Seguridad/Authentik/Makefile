@@ -19,23 +19,26 @@ help:
 	@echo "==========================================$(NC)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-18s$(NC) %s\n", $$1, $$2}'
 
-check-env: ## Verifica que .env existe y no tiene secretos por defecto
+check-env: ## Verifica que .env existe y no tiene secretos por defecto o vacíos
 	@if [ ! -f .env ]; then \
 		echo "$(YELLOW)⚠️  Archivo .env no encontrado. Creando desde .env.example...$(NC)"; \
 		cp .env.example .env; \
 	fi
-	@if grep -q "CHANGE_ME" .env; then \
-		echo "$(RED)❌ ERROR: El archivo .env contiene contraseñas CHANGE_ME.$(NC)"; \
-		echo "$(YELLOW)💡 Ejecuta 'make generate-secret' para crear claves seguras automáticamente.$(NC)"; \
+	@if grep -q "CHANGE_ME" .env || grep -qE "^AUTHENTIK_SECRET_KEY=[[:space:]]*$$" .env || grep -qE "^PG_PASS=[[:space:]]*$$" .env; then \
+		echo "$(RED)❌ ERROR: El archivo .env contiene contraseñas por defecto o vacías.$(NC)"; \
+		echo "$(YELLOW)💡 Ejecuta 'make generate-secret' para crear/rotar claves seguras.$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(GREEN)✓ Archivo .env validado.$(NC)"
 
-generate-secret: ## Genera claves criptográficas y las inyecta en el .env
+ggenerate-secret: ## Genera claves criptográficas, las inyecta y permite rotarlas
 	@if [ ! -f .env ]; then cp .env.example .env; fi
-	@echo "$(CYAN)Generando secretos seguros...$(NC)"
-	@sed -i 's/CHANGE_ME_SECRET_KEY/'$$(openssl rand -base64 36 | tr -d '\n' | sed 's/[\/&]/\\&/g')'/g' .env
-	@sed -i 's/CHANGE_ME_DB_PASSWORD/'$$(openssl rand -base64 24 | tr -d '\n' | sed 's/[\/&]/\\&/g')'/g' .env
+	@echo "$(CYAN)Generando (o rotando) secretos seguros...$(NC)"
+	@SECRET_KEY=$$(openssl rand -base64 36 | tr -d '\n' | sed 's/[\/&]/\\&/g'); \
+	DB_PASS=$$(openssl rand -base64 24 | tr -d '\n' | sed 's/[\/&]/\\&/g'); \
+	sed -i.bak "s/^AUTHENTIK_SECRET_KEY=.*/AUTHENTIK_SECRET_KEY=$$SECRET_KEY/" .env; \
+	sed -i.bak "s/^PG_PASS=.*/PG_PASS=$$DB_PASS/" .env; \
+	rm -f .env.bak
 	@echo "$(GREEN)✓ Secretos criptográficos inyectados en .env$(NC)"
 
 init: check-env ## Inicializa el despliegue

@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD required}
+      MYSQL_DATABASE: ${DB_NAME:-vaultwarden}
+      MYSQL_USER: ${DB_USER:-vaultwarden}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
+    volumes:
+      - ./data/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  vaultwarden:
+    image: vaultwarden/server:${VAULTWARDEN_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=mysql://${DB_USER:-vaultwarden}:${DB_PASSWORD:?DB_PASSWORD required}@mariadb/${DB_NAME:-vaultwarden}
+      - ADMIN_TOKEN=${ADMIN_TOKEN:?ADMIN_TOKEN required}
+      - SIGNUPS_ALLOWED=${SIGNUPS_ALLOWED:-false}
+    volumes:
+      - ./data/vw-data:/data
+    ports:
+      # Anclado a loopback. REQUIERE REVERSE PROXY con HTTPS.
+      - "127.0.0.1:8080:80"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

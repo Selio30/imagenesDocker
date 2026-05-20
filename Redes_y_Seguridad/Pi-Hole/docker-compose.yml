@@ -18,6 +18,11 @@ services:
       timeout: 5s
       retries: 3
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   pihole-secondary:
     image: pihole/pihole:latest
@@ -38,6 +43,11 @@ services:
       timeout: 5s
       retries: 3
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   orbital-sync:
     image: mattwebbio/orbital-sync:latest
@@ -55,6 +65,11 @@ services:
       pihole-secondary:
         condition: service_healthy
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   pihole_macvlan:

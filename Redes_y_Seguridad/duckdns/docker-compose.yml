@@ -1,7 +1,6 @@
 services:
   duckdns:
     image: lscr.io/linuxserver/duckdns:latest
-    container_name: duckdns
     network_mode: host
     env_file:
       - .env
@@ -10,3 +9,8 @@ services:
       - PGID=1000
       - LOG_FILE=false
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

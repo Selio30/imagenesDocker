@@ -2,7 +2,6 @@ services:
   portainer:
     # Intentionally using :latest for homelab auto-updates
     image: portainer/portainer-ce:latest
-    container_name: portainer
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -13,3 +12,8 @@ services:
     ports:
       - "127.0.0.1:19443:9443" # HTTPS Web UI
       #- "127.0.0.1:18000:8000" # Only required if adding Edge Nodes (optional)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

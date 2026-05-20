@@ -8,9 +8,13 @@ Below is the catalog of currently deployed and documented infrastructure stacks,
 
 ### 🛡️ Redes y Seguridad (Networks & Security)
 
+* **[Blocky GitOps DNS](./Redes_y_Seguridad/Blocky/README.md)**
+  Privacy-first, GitOps-powered DNS-level content filtering proxy with DoT upstreams.
+  * **Key Features:** Zero-IP ad blocking, declarative YAML configuration, parallel DNS-over-TLS encryption, and hot-reload API.
+
 * **[Pi-Hole HA DNS Sinkhole](./Redes_y_Seguridad/Pi-Hole/README.md)**
   Network-wide ad blocking and DNS filtering engine for implicit protection of every LAN device.
-  * **Key Features:** FTLDNS-based resolution, Gravity blocklist compilation, web admin dashboard, Makefile lifecycle automation, and credential isolation via `.env`.
+  * **Key Features:** High Availability Macvlan topology, Orbital Sync orchestration, FTLDNS-based resolution, and web admin dashboard.
 
 * **[DuckDNS Updater](./Redes_y_Seguridad/duckdns/README.md)**
   Enterprise-grade Dynamic DNS management for real-time IP synchronization.

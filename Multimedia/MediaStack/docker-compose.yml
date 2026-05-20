@@ -4,6 +4,12 @@ x-common-env: &common-env
   TZ: Europe/Madrid
   UMASK: 002
 
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
 
   ############################################################
@@ -44,6 +50,7 @@ services:
     restart: always
     networks:
       - media
+    logging: *default-logging
 
   immich-machine-learning:
     image: ghcr.io/immich-app/immich-machine-learning:release
@@ -53,6 +60,7 @@ services:
     restart: always
     networks:
       - media
+    logging: *default-logging
 
   immich-redis:
     image: redis:7-alpine
@@ -64,6 +72,7 @@ services:
     restart: always
     networks:
       - media
+    logging: *default-logging
 
   immich-postgres:
     image: tensorchord/pgvecto-rs:pg14-v0.2.0-240529
@@ -81,6 +90,7 @@ services:
     restart: always
     networks:
       - media
+    logging: *default-logging
 
   ############################################################
   # MULTIMEDIA — Cine, Series y Subtítulos
@@ -101,6 +111,7 @@ services:
         condition: service_completed_successfully
     networks:
       - media
+    logging: *default-logging
 
   radarr:
     image: linuxserver/radarr:latest
@@ -116,6 +127,7 @@ services:
         condition: service_completed_successfully
     networks:
       - media
+    logging: *default-logging
 
   sonarr:
     image: linuxserver/sonarr:latest
@@ -131,6 +143,7 @@ services:
         condition: service_completed_successfully
     networks:
       - media
+    logging: *default-logging
 
   bazarr:
     image: linuxserver/bazarr:latest
@@ -146,6 +159,7 @@ services:
         condition: service_completed_successfully
     networks:
       - media
+    logging: *default-logging
 
   ############################################################
   # DESCARGAS Y GESTIÓN — Prowlarr, qBittorrent, Seerr
@@ -160,6 +174,7 @@ services:
       - ./config/prowlarr:/config
     networks:
       - media
+    logging: *default-logging
 
   qbittorrent:
     image: linuxserver/qbittorrent:latest
@@ -180,6 +195,7 @@ services:
         condition: service_completed_successfully
     networks:
       - media
+    logging: *default-logging
 
   seerr:
     image: fallenbagel/jellyseerr:latest
@@ -191,6 +207,7 @@ services:
       - ./config/seerr:/config
     networks:
       - media
+    logging: *default-logging
 
   ############################################################
   # LECTURA Y MÚSICA — Lidarr y Readarr
@@ -209,6 +226,7 @@ services:
         condition: service_completed_successfully
     networks:
       - media
+    logging: *default-logging
 
   readarr:
     image: linuxserver/readarr:develop-0.4.18.2805-ls157
@@ -224,6 +242,7 @@ services:
         condition: service_completed_successfully
     networks:
       - media
+    logging: *default-logging
 
 ############################################################
 # REDES Y VOLÚMENES EXTERNOS

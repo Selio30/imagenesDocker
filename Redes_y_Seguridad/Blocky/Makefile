@@ -23,8 +23,6 @@ check-env: ## Verifica que .env existe
 	@if [ ! -f .env ]; then \
 		echo "$(YELLOW)⚠️  Archivo .env no encontrado. Creando desde .env.example...$(NC)"; \
 		cp .env.example .env; \
-		echo "$(YELLOW)⚙️  Revisa .env y ajusta si es necesario, luego ejecuta 'make init' de nuevo.$(NC)"; \
-		exit 1; \
 	fi
 	@echo "$(GREEN)✓ Archivo .env validado.$(NC)"
 
@@ -50,8 +48,12 @@ logs: ## Muestra los logs en tiempo real
 
 reload: ## Recarga la configuración sin reiniciar el contenedor
 	@echo "$(CYAN)Enviando señal para recargar config.yml...$(NC)"
-	@curl -s -X POST http://localhost:4000/api/blocking/reload
-	@echo "\n$(GREEN)✓ Configuración recargada$(NC)"
+	@if curl -s -f -X POST http://127.0.0.1:4000/api/blocking/reload; then \
+		echo "\n$(GREEN)✓ Configuración recargada exitosamente$(NC)"; \
+	else \
+		echo "\n$(RED)❌ Error al recargar la configuración (revisa que el contenedor esté corriendo)$(NC)"; \
+		exit 1; \
+	fi
 
 clean: ## Detiene y borra contenedores huérfanos
 	@docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) down --remove-orphans

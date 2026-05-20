@@ -1,0 +1,59 @@
+# === SERVIDORES DNS SUPERIORES ===
+# Usamos servidores DNS-over-TLS (DoT) para privacidad
+upstreams:
+  groups:
+    default:
+      - tcp-tls:fdns1.dismail.de:853
+      - tcp-tls:1.1.1.1:853
+  # Estrategia: responder con la respuesta más rápida disponible
+  strategy: parallel_best
+  timeout: 2s
+
+# === DNS DE RESPALDO (BOOTSTRAP) ===
+# Resuelve los hostnames de los upstreams sin depender del DNS del sistema
+bootstrapDns:
+  - tcp+udp:1.1.1.1
+  - tcp+udp:9.9.9.9
+
+# === BLOQUEO DE ANUNCIOS ===
+blocking:
+  denylists:
+    ads:
+      - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+      - https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
+  allowlists:
+    ads:
+      - https://raw.githubusercontent.com/anudeepND/whitelist/master/domains/whitelist.txt
+  clientGroupsBlock:
+    default:
+      - ads
+  blockType: zeroIp
+
+# === DNS LOCAL ===
+# Sustituye a tu /etc/hosts
+customDNS:
+  customTTL: 1h
+  filterUnmappedTypes: true
+  mapping:
+    home.lan: 192.168.1.1
+    proxmox.lan: 192.168.1.100
+    portainer.lan: 192.168.1.105
+
+# === CACHÉ DNS ===
+caching:
+  minTime: 5m
+  maxTime: 30m
+  prefetching: true
+  prefetchThreshold: 5
+  cacheTimeNegative: 30m
+
+# === PUERTOS ===
+ports:
+  dns: 53
+  http: 4000
+
+# === REGISTRO ===
+log:
+  level: info
+  format: text
+  timestamp: true

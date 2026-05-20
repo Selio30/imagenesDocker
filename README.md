@@ -8,6 +8,10 @@ Below is the catalog of currently deployed and documented infrastructure stacks,
 
 ### 🛡️ Redes y Seguridad (Networks & Security)
 
+* **[Authentik SSO & IdP](./Redes_y_Seguridad/Authentik/README.md)**
+  Production-grade identity provider delivering SSO, MFA, and centralized identity brokering.
+  * **Key Features:** Zero-trust loopback binding, automatic cryptographic bootstrapping, native healthchecks, and Docker outpost auto-discovery.
+
 * **[Blocky GitOps DNS](./Redes_y_Seguridad/Blocky/README.md)**
   Privacy-first, GitOps-powered DNS-level content filtering proxy with DoT upstreams.
   * **Key Features:** Zero-IP ad blocking, declarative YAML configuration, parallel DNS-over-TLS encryption, and hot-reload API.

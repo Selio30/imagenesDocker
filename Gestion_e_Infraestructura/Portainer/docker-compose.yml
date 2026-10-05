@@ -10,8 +10,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/data
     ports:
-      - "127.0.0.1:19443:9443" # HTTPS Web UI
-      #- "127.0.0.1:18000:8000" # Only required if adding Edge Nodes (optional)
+      - "19443:9443" # HTTPS Web UI
+      #- "18000:8000" # Only required if adding Edge Nodes (optional)
     logging:
       driver: "json-file"
       options:
